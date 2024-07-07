@@ -7,11 +7,9 @@ using Serilog.Events;
 
 try
 {
-
     // Parse environment from command-line arguments
     string environment = ParseEnvironment(args);
 
-    // Load configuration based on environment
     IConfiguration config = LoadConfiguration(environment);
 
     if (config == null)
@@ -93,10 +91,25 @@ string ParseEnvironment(string[] args)
 // Load configuration settings based on environment
 IConfiguration LoadConfiguration(string environment)
 {
-    IConfiguration config = new ConfigurationBuilder()
-        .SetBasePath(Directory.GetCurrentDirectory())
-        .AddJsonFile($"config/appsettings.{environment}.json", optional: true, reloadOnChange: true)
-        .Build();
+    IConfiguration config = null;
+
+    try
+    {
+        config = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile($"config/appsettings.{environment}.json", optional: false, reloadOnChange: true)
+            .Build();
+    }
+    catch (FileNotFoundException ex)
+    {
+        Console.WriteLine($"Error loading configuration for environment '{environment}': {ex.Message}");
+        throw; // Rethrow the exception to stop further execution
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error loading configuration for environment '{environment}': {ex.Message}");
+        throw;
+    }
 
     return config;
 }
