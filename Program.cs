@@ -2,19 +2,18 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Events;
 
 try
 {
-    // Configure Serilog at the beginning
-    ConfigureLogging();
-
-    // Main logic starts here
     string environment = ParseEnvironment(args);
 
     IConfiguration config = LoadConfiguration(environment);
 
     if (config == null)
         throw new ArgumentNullException(nameof(config));
+
+    ConfigureLogging(config);
 
     var serviceProvider = new ServiceCollection()
         .AddSingleton<IConfiguration>(provider => config)
@@ -54,13 +53,18 @@ finally
     Console.ReadKey();
 }
 
-void ConfigureLogging()
+void ConfigureLogging(IConfiguration config)
 {
+
+    string debugConfigValue = config["Logging:Debug"];
+    bool debugEnabled = bool.TryParse(debugConfigValue, out bool result) ? result : false;
+
     Log.Logger = new LoggerConfiguration()
-        .MinimumLevel.Information()
-        .WriteTo.Console()
+        .MinimumLevel.Is(debugEnabled ? LogEventLevel.Debug : LogEventLevel.Information)
+        .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Debug)
         .WriteTo.File("logs/power_trades-.txt", rollingInterval: RollingInterval.Day)
         .CreateLogger();
+
 }
 
 string ParseEnvironment(string[] args)
@@ -88,8 +92,4 @@ IConfiguration LoadConfiguration(string environment)
         .Build();
 
     return config;
-}
-
-void GetTrades() {
-
 }
