@@ -1,5 +1,4 @@
-﻿using System.Xml.Linq;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -18,7 +17,7 @@ try
         throw new ArgumentNullException(nameof(config));
 
     var serviceProvider = new ServiceCollection()
-        .AddTransient<IConfiguration>(provider => config)
+        .AddSingleton<IConfiguration>(provider => config)
         .AddTransient<IStorage, FileStorage>()
         .AddTransient<ITrade, TradesAsync>()
         .AddLogging(builder =>
