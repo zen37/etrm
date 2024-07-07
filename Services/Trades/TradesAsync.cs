@@ -1,11 +1,15 @@
+using System.Runtime.Serialization;
 using Axpo;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 public class TradesAsync : ITrade
 {
+    private readonly IConfiguration _config;
     private readonly ILogger<TradesAsync> _log;
 
-    public TradesAsync(ILogger<TradesAsync> logger){
+    public TradesAsync(IConfiguration config, ILogger<TradesAsync> logger){
+        _config = config ?? throw new ArgumentNullException(nameof(config));
         _log = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -15,6 +19,7 @@ public class TradesAsync : ITrade
         {
             IEnumerable<PowerTrade> trades = await RetrieveTradesAsync(dateToRetrieve);
             Dictionary<int, double> total = CalculateTotalVolumeByPeriod(trades);
+
             return total;
         }
         catch (Exception ex)
@@ -30,6 +35,12 @@ public class TradesAsync : ITrade
         {
             PowerService powerService = new PowerService();
             IEnumerable<PowerTrade> trades = await powerService.GetTradesAsync(dateToRetrieve);
+
+            string debugConfigValue = _config["Logging:Debug"];
+            bool debugEnabled = bool.TryParse(debugConfigValue, out bool result) ? result : false;
+            if (debugEnabled) {
+                PrintTrades(trades);
+            }
 
             return trades;
         }
@@ -59,6 +70,26 @@ public class TradesAsync : ITrade
             }
         }
         return totalVolumesByPeriod;
+    }
+
+    private void PrintTrades(IEnumerable<PowerTrade> trades)
+    {
+        int counterPeriods = int.TryParse(_config["Logging:Periods"], out int result) ? result : 0 ;
+
+        foreach (PowerTrade trade in trades)
+        {
+            _log.LogDebug($"Trade ID: {trade.TradeId}");
+            int i = 1;
+            foreach (PowerPeriod period in trade.Periods)
+            {
+                _log.LogDebug($"Period {period.Period}: Volume: {period.Volume}");
+                if (i >= counterPeriods)
+                {
+                    break;
+                }
+                i += 1;
+            }
+        }
     }
 
     public Dictionary<int, double> GetTotalVolumePerPeriodPerDay(DateTime dateToRetrieve)
