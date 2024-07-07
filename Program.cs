@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Xml.Linq;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -19,6 +20,7 @@ try
     var serviceProvider = new ServiceCollection()
         .AddTransient<IConfiguration>(provider => config)
         .AddTransient<IStorage, FileStorage>()
+        .AddTransient<ITrade, TradesAsync>()
         .AddLogging(builder =>
         {
             builder.AddSerilog();
@@ -31,23 +33,23 @@ try
     logger.LogInformation($"Using environment: {environment}");
 
     string timeZoneId = config["Time:Zone"];
-
     DateTime dateToRetrieve = Utilities.GetCurrentDateTime(timeZoneId);
     logger.LogInformation($"Date time for {timeZoneId}: {dateToRetrieve}");
 
-    Dictionary<int, double> total = await Trades.GetTotalVolumePerPeriodPerDay(dateToRetrieve);
+    // get trades
+    var tradeService = serviceProvider.GetRequiredService<ITrade>();
+    Dictionary<int, double> total = await tradeService.GetTotalVolumePerPeriodPerDayAsync(dateToRetrieve);
 
+    //save data
     var exportData = serviceProvider.GetService<IStorage>();
     exportData.Save(total);
 }
 catch (Exception ex)
 {
-    // Logging exceptions using Serilog
     Log.Logger.Error(ex, $"ERROR retrieving or processing trades: {ex.Message}");
 }
 finally
 {
-    // Logging final message
     Log.CloseAndFlush();
     Console.WriteLine("Press any key to exit...");
     Console.ReadKey();
@@ -87,4 +89,8 @@ IConfiguration LoadConfiguration(string environment)
         .Build();
 
     return config;
+}
+
+void GetTrades() {
+
 }

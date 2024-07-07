@@ -40,7 +40,7 @@ public class FileStorage : IStorage
                 }
             }
 
-            _logger.LogInformation($"Data saved");
+            _logger.LogInformation($"SUCCESS");
         }
         catch (Exception ex)
         {

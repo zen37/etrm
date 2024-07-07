@@ -1,24 +1,30 @@
 using Axpo;
+using Microsoft.Extensions.Logging;
 
-public static class Trades
+public class TradesAsync : ITrade
 {
-    public static async Task<Dictionary<int, double>> GetTotalVolumePerPeriodPerDay(DateTime dateToRetrieve)
+    private readonly ILogger<TradesAsync> _log;
+
+    public TradesAsync(ILogger<TradesAsync> logger){
+        _log = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    public async Task<Dictionary<int, double>> GetTotalVolumePerPeriodPerDayAsync(DateTime dateToRetrieve)
     {
         try
         {
             IEnumerable<PowerTrade> trades = await RetrieveTradesAsync(dateToRetrieve);
             Dictionary<int, double> total = CalculateTotalVolumeByPeriod(trades);
-            
             return total;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in GetTotalVolumePerPeriodPerDay: {ex.Message}");
+            _log.LogError($"Error in GetTotalVolumePerPeriodPerDay (async): {ex.Message}");
             throw; 
         }
     }
 
-    private static async Task<IEnumerable<PowerTrade>> RetrieveTradesAsync(DateTime dateToRetrieve)
+    private async Task<IEnumerable<PowerTrade>> RetrieveTradesAsync(DateTime dateToRetrieve)
     {
         try
         {
@@ -29,12 +35,12 @@ public static class Trades
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in RetrieveTradesAsync: {ex.Message}");
+            _log.LogError($"Error in RetrieveTradesAsync: {ex.Message}");
             throw;
         }
     }
 
-    private static Dictionary<int, double> CalculateTotalVolumeByPeriod(IEnumerable<PowerTrade> trades)
+    private Dictionary<int, double> CalculateTotalVolumeByPeriod(IEnumerable<PowerTrade> trades)
     {
         Dictionary<int, double> totalVolumesByPeriod = new Dictionary<int, double>();
 
@@ -53,5 +59,10 @@ public static class Trades
             }
         }
         return totalVolumesByPeriod;
+    }
+
+    public Dictionary<int, double> GetTotalVolumePerPeriodPerDay(DateTime dateToRetrieve)
+    {
+        throw new NotSupportedException("This implementation does not support synchronous operations.");
     }
 }
