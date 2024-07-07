@@ -36,7 +36,8 @@ public class FileStorage : IStorage
                 writer.WriteLine($"{headerField1}{valuesSeparator}{headerField2}");
                 foreach (var item in data)
                 {
-                    writer.WriteLine($"{item.Key}{valuesSeparator}{item.Value}");
+                    string hour = Constants.PeriodTime[item.Key];
+                    writer.WriteLine($"{hour}{valuesSeparator}{item.Value}");
                 }
             }
 
