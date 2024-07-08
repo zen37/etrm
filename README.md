@@ -1,6 +1,6 @@
 # Publish
 
-dotnet publish -c Release -r <runtime_identifier> --self-contained true
+`dotnet publish -c Release -r <runtime_identifier> --self-contained true`
 
 Replace <runtime_identifier> with the appropriate identifier for your target platform:
 
