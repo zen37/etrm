@@ -101,7 +101,9 @@ config/appsettings.Development.json
      ```
 
 ### Notes:
-- Environment is Development by default, for ather environment launch application with parameter `--environment==<name>`
+- Environment is Development by default, for other environment launch application with parameter 
+
+`--environment==<name>`
 - Ensure that the application has executable permissions (`chmod +x PowerTrades` on macOS/Linux) if needed.
 
 
